@@ -1,0 +1,16 @@
+{
+  "name": "openai-api-test",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "start": "tsx watch server.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "tsx": "^4.17.0",
+    "typescript": "^5.5.4"
+  }
+}
