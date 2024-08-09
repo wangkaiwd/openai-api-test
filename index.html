@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+<p class="content"></p>
+<input class="input" placeholder="input content"/>
+<button class="button">submit</button>
+</body>
+<script>
+  const contentEl = document.getElementsByClassName('content')[0]
+  const buttonEl = document.getElementsByClassName('button')[0]
+  const inputEl = document.getElementsByClassName('input')[0]
+  const submit = () => {
+    inputEl.value = ''
+    const es = new EventSource('/api/chat')
+    es.onmessage = (event) => {
+      const data = JSON.parse(event.data)
+      const oldText = contentEl.innerText
+      contentEl.innerText = oldText + data.choices[0]?.delta?.content
+    }
+  }
+  buttonEl.addEventListener('click', () => {
+    submit()
+  })
+
+</script>
+</html>
