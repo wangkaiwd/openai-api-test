@@ -1,11 +1,11 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Document</title>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
 </head>
 <body>
 <p class="content"></p>
@@ -13,20 +13,33 @@
 <button class="button">submit</button>
 </body>
 <script>
-  const contentEl = document.getElementsByClassName('content')[0]
-  const buttonEl = document.getElementsByClassName('button')[0]
-  const inputEl = document.getElementsByClassName('input')[0]
-  const submit = () => {
-    inputEl.value = ''
-    const es = new EventSource('/api/chat')
+  const content = document.getElementsByClassName('content')[0]
+  const button = document.getElementsByClassName('button')[0]
+  const input = document.getElementsByClassName('input')[0]
+  let es = null
+  const submit = (prompt) => {
+    if (es) {
+      es.close()
+    }
+    es = new EventSource(`/api/chat?prompt=${prompt}`)
+    // listen event
     es.onmessage = (event) => {
-      const data = JSON.parse(event.data)
-      const oldText = contentEl.innerText
-      contentEl.innerText = oldText + data.choices[0]?.delta?.content
+      const data = event.data
+      const json = JSON.parse(data)
+      const answer = json.choices[0]?.delta?.content
+      content.innerText = content.innerText + answer
     }
   }
-  buttonEl.addEventListener('click', () => {
-    submit()
+  button.addEventListener('click', () => {
+    const prompt = input.value.trim()
+    if (!prompt) {
+      alert('Please input your question!')
+      return
+    }
+    // clear content
+    input.value = ''
+    content.innerText = ''
+    submit(prompt)
   })
 
 </script>

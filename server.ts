@@ -1,35 +1,38 @@
 import 'dotenv/config'
 import http from 'http'
-import fsp from 'fs/promises'
 import OpenAI from 'openai'
+import { createReadStream } from 'fs'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-  baseURL: 'https://api.deepseek.com'
+  baseURL: 'https://api.deepseek.com',
 })
 const server = http.createServer(async (req: any, res: any) => {
-  if (req.url === '/') {
-    const data = await fsp.readFile('./index.html', 'utf8')
-    res.writeHead(200, { 'Content-Type': 'text/html' })
-    res.end(data)
+  // https://github.com/nodejs/node/issues/12682
+  const { pathname, searchParams } = new URL(req.url,
+    `http://${req.headers.host}`)
+  // https://blog.adriaan.io/convert-url-searchparams-to-plain-javascript-object.html
+  const query = Object.fromEntries(searchParams)
+
+  if (pathname === '/') {
+    createReadStream('./index.html').pipe(res)
     return
   }
-  if (req.url === '/api/chat') {
-    res.writeHead(200, {
-      'Content-Type': 'text/event-stream',
-    })
+  if (pathname === '/api/chat') {
     const stream = await openai.chat.completions.create({
       model: 'deepseek-chat',
-      messages: [{ role: 'user', content: 'Who are you' }],
+      messages: [{ role: 'user', content: query.prompt }],
       stream: true,
+      max_tokens: 100,
     })
+    res.writeHead(200, { 'Content-Type': 'text/event-stream' })
     for await (const chunk of stream) {
       res.write(`data: ${JSON.stringify(chunk)}\n\n`)
     }
     req.on('close', () => {
       console.log('req close ...')
+      res.end()
     })
-    res.end()
     return
   }
   res.end('other route')
